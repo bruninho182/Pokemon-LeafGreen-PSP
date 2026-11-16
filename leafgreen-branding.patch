@@ -1,0 +1,101 @@
+diff --git a/src/platform/psp.c b/src/platform/psp.c
+index 56d1f67..a422a0f 100644
+--- a/src/platform/psp.c
++++ b/src/platform/psp.c
+@@ -1,6 +1,14 @@
+ #if defined(PORTABLE) && defined(__PSP__)
+ // The PSP backend: the frame loop, the buttons, the save files and the menu
+ // that switches between them. psp_hw.c does the talking to the system.
++#if defined(LEAFGREEN)
++#define PSP_GAME_NAME "Pokemon LeafGreen PSP"
++#define PSP_SETTINGS_NAME "POKEMON LEAFGREEN PSP SETTINGS"
++#else
++#define PSP_GAME_NAME "Pokemon FireRed PSP"
++#define PSP_SETTINGS_NAME "POKEMON FIRERED PSP SETTINGS"
++#endif
++
+ #include <stdarg.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -157,7 +165,7 @@ static void StoreSettings(void)
+ 
+     SettingsPath(path, sizeof(path));
+     length = snprintf(text, sizeof(text),
+-                      "# Pokemon FireRed PSP settings. The settings menu (the music note button) changes them.\n"
++                      "# " PSP_GAME_NAME " settings. The settings menu (the music note button) changes them.\n"
+                       "# The save file that's played, from saves/slot1.sav to saves/slot%d.sav\n"
+                       "slot = %d\n"
+                       "# 0 fits the screen keeping the shape, 1 stretches, 2 is twice the size cut at the\n"
+@@ -312,7 +320,7 @@ static bool LooksLikeName(const u8 *name)
+ }
+ 
+ // How well SaveBlock1's tail fits being at `shift` bytes before the GBA's
+-// place: the Pokédex's second copy of the seen flags matching the first, and
++// place: the PokÃ©dex's second copy of the seen flags matching the first, and
+ // the rival's name being a name
+ static int TailFits(const u8 *block, u32 shift)
+ {
+@@ -659,7 +667,7 @@ static void DrawSettings(void)
+     char text[PSP_TEXT_COLUMNS + 1];
+     int row = 2;
+ 
+-    PspHw_Print(2, row, COLOR_YELLOW, "POKEMON FIRERED PSP SETTINGS");
++    PspHw_Print(2, row, COLOR_YELLOW, PSP_SETTINGS_NAME);
+     row += 2;
+     for (int i = 0; i < ROW_COUNT; i++, row++)
+     {
+@@ -1540,7 +1548,7 @@ static u32 TestButtons(bool *done, bool *shot)
+                     VarSet(id, value);
+                 if (sscanf(name, "CLEARFLAG:%x", &id) == 1)
+                     FlagClear(id);
+-                // BATTLESET: the SET battle style, so trainers' next Pokémon
++                // BATTLESET: the SET battle style, so trainers' next PokÃ©mon
+                 // don't come with an offer to switch
+                 if (strcmp(name, "BATTLESET") == 0)
+                     gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SET;
+@@ -1554,7 +1562,7 @@ static u32 TestButtons(bool *done, bool *shot)
+                         SetMonData(&gPlayerParty[i], MON_DATA_MODERN_FATEFUL_ENCOUNTER, &obedient);
+                     }
+                 }
+-                // PARTYLEAD:n swaps the party's first Pokémon with its nth
++                // PARTYLEAD:n swaps the party's first PokÃ©mon with its nth
+                 if (sscanf(name, "PARTYLEAD:%u", &id) == 1 && id < PARTY_SIZE)
+                 {
+                     struct Pokemon lead = gPlayerParty[0];
+diff --git a/src/platform/psp_hw.c b/src/platform/psp_hw.c
+index 5bd3006..57a31f4 100644
+--- a/src/platform/psp_hw.c
++++ b/src/platform/psp_hw.c
+@@ -1,6 +1,14 @@
+ #if defined(PORTABLE) && defined(__PSP__)
+ // The PSP's side of the port: video with the GU, sound, the buttons, files and
+ // the clock. Nothing here includes the game's headers (see psp_hw.h).
++#if defined(LEAFGREEN)
++#define PSP_GAME_NAME "Pokemon LeafGreen PSP"
++#define PSP_SETTINGS_NAME "POKEMON LEAFGREEN PSP SETTINGS"
++#else
++#define PSP_GAME_NAME "Pokemon FireRed PSP"
++#define PSP_SETTINGS_NAME "POKEMON FIRERED PSP SETTINGS"
++#endif
++
+ #include <stdio.h>
+ #include <string.h>
+ #include <pspkernel.h>
+@@ -16,7 +24,7 @@
+ 
+ #include "platform/psp_hw.h"
+ 
+-PSP_MODULE_INFO("Pokemon FireRed PSP", PSP_MODULE_USER, 1, 0);
++PSP_MODULE_INFO(PSP_GAME_NAME, PSP_MODULE_USER, 1, 0);
+ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+ // Everything but 1 MB for the system's threads and their stacks
+ PSP_HEAP_SIZE_KB(-1024);
+@@ -200,7 +208,7 @@ static void ShowHang(void)
+     pspDebugScreenSetBackColor(0xFF804000);
+     pspDebugScreenSetTextColor(0xFFFFFFFF);
+     pspDebugScreenClear();
+-    pspDebugScreenPrintf("Pokemon FireRed PSP stopped responding.\n");
++    pspDebugScreenPrintf(PSP_GAME_NAME " stopped responding.\n");
+     pspDebugScreenPrintf("Please photograph this screen.\n\n");
+     pspDebugScreenPrintf("Stuck in: %s\n", step < sizeof(sSteps) / sizeof(sSteps[0]) ? sSteps[step] : "?");
+     pspDebugScreenPrintf("Frame %u\n\n", (unsigned)sDiag[PSP_DIAG_FRAME]);
