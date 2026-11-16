@@ -27,6 +27,11 @@ if ! git -C "$source_dir" cat-file -e "$revision^{commit}" 2>/dev/null; then
     git -C "$source_dir" fetch --depth 1 https://github.com/JustKidding23/Pokemon-FireRed-PSP.git "$revision"
 fi
 git -C "$source_dir" checkout --quiet --detach "$revision"
+if git -C "$source_dir" apply --check "$project/leafgreen-branding.patch" 2>/dev/null; then
+    git -C "$source_dir" apply "$project/leafgreen-branding.patch"
+else
+    git -C "$source_dir" apply --reverse --check "$project/leafgreen-branding.patch"
+fi
 cp "$project/assets/ICON0.PNG" "$project/assets/PIC1.PNG" "$source_dir/psp/"
 make -C "$source_dir" -j"$(nproc)" psp GAME_VERSION=LEAFGREEN GAME_REVISION=1 \
     'PSP_TITLE=Pokemon LeafGreen PSP'
